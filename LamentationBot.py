@@ -135,8 +135,8 @@ def channel_already_informed(chat_id, vEventDate, vEventStartTime, vEventName):
 
 def check_for_events(context):
     for chat_id in chatrooms:
-        startDate = datetime.combine(datetime.today() + timedelta(3), time(0, 0))
-        endDate = datetime.combine(datetime.today() + timedelta(3), time(23, 59))
+        startDate = datetime.combine(datetime.today() + timedelta(2), time(0, 0))
+        endDate = datetime.combine(datetime.today() + timedelta(2), time(23, 59))
         for event in cal.date_search(startDate, endDate):
             event.load()
             e = event.instance.vevent
@@ -170,7 +170,7 @@ job_daily = jobqueue.run_daily(check_for_events, time(8, 0))
 
 
 # Job jede Minute for testing
-job_minute = jobqueue.run_repeating(check_for_events, interval=600, first=0)
+# job_minute = jobqueue.run_repeating(check_for_events, interval=600, first=0)
 
 # Eventhandler, wenn der Bot einem Chat hinzugefuegt wird
 dispatcher.add_handler(MessageHandler(Filters.status_update.new_chat_members, new_member))
