@@ -133,6 +133,9 @@ def left_member(update, context):
 def channel_already_informed(chat_id, vEventDate, vEventStartTime, vEventName):
     return len(execute_select('SELECT 1 FROM chatrooms_informed WHERE chat_id = ? AND vEventDate = ? AND vEventTime = ? AND vEventName = ?', [chat_id, vEventDate, vEventStartTime, vEventName])) > 0
 
+def show_calendar_name(update, context):
+        update.message.reply_text(u'Kalender %s wird verwendet' % CALENDAR_NAME)
+
 def check_for_events(context):
     for chat_id in chatrooms:
         startDate = datetime.combine(datetime.today() + timedelta(2), time(0, 0))
@@ -168,6 +171,9 @@ jobqueue = updater.job_queue
 # Job jeden Tag
 job_daily = jobqueue.run_daily(check_for_events, time(8, 0))
 
+# Hilfetext anzeigen
+cal_handler = CommandHandler('cal', show_calendar_name)
+dispatcher.add_handler(cal_handler)
 
 # Job jede Minute for testing
 # job_minute = jobqueue.run_repeating(check_for_events, interval=600, first=0)
