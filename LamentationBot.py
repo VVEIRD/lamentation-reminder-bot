@@ -136,6 +136,27 @@ def channel_already_informed(chat_id, vEventDate, vEventStartTime, vEventName):
 def show_calendar_name(update, context):
         update.message.reply_text(u'Kalender %s wird verwendet' % CALENDAR_NAME)
 
+def send_event(chat_id, context, startDate, event):
+    e = event.instance.vevent
+    vEventName = e.summary.value
+    vEventStatus = e.status.value
+    vEventLocation = e.location.value
+    vEventTime = startDate.date().strftime('%Y%m%d') + 'T' + e.dtstart.value.strftime('%H%M') + '00Z'
+    vEvent = '''BEGIN:VCALENDAR
+VERSION:2.0
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:%s@%s/%s@%s
+SUMMARY:%s
+DTSTART:%s
+DURATION:PT4H
+END:VEVENT
+END:VCALENDAR''' % (botName, CALENDAR_NAME.replace(' ', ''), vEventName.replace(' ', ''), vEventTime, vEventName, vEventTime)
+    vEvFile = open(vEventName + '.vcs','w')
+    vEvFile.write(vEvent)
+    vEvFile.close()
+    context.bot.send_document(chat_id=chat_id, document=open(vEventName + '.vcs', 'rb'))
+
 def check_for_events(context):
     for chat_id in chatrooms:
         startDate = datetime.combine(datetime.today() + timedelta(2), time(0, 0))
@@ -156,6 +177,7 @@ findet am %s um %s
 %s statt.''' % (vEventName, vEventDate, vEventStartTime, vEventLocation)
                 # Tippe 1 in den Chat wenn du teilnimmst.
                 context.bot.send_message(chat_id=chat_id, text=message)
+                send_event(chat_id, context, startDate, event)
                 execute_query('INSERT INTO chatrooms_informed (chat_id, vEventDate, vEventTime, vEventName) VALUES (?, ?, ?, ?)', [chat_id, vEventDate, vEventStartTime, vEventName])
 
 
