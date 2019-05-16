@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+## Bot to remind Chatroom about the next rpg event
+#
+#
+
 import caldav
 from datetime import datetime, date, time, timedelta
 import sys
@@ -10,6 +15,8 @@ import os
 import logging
 from threading import Thread
 import sys
+import re
+import random
 
 TELEGRAM_TOKEN = sys.argv[1]
 CAL_DAV_URL = sys.argv[2]
@@ -180,6 +187,40 @@ findet am %s um %s
                 send_event(chat_id, context, startDate, event)
                 execute_query('INSERT INTO chatrooms_informed (chat_id, vEventDate, vEventTime, vEventName) VALUES (?, ?, ?, ?)', [chat_id, vEventDate, vEventStartTime, vEventName])
 
+def dice(update, context):
+    chat_id = update.message.chat.id
+    user_id = update.message.from_user.id
+    user_name = update.message.from_user.first_name
+    msg = update.message.text.strip()
+    # Regex Suchen fuer wuerfelwuerfe
+    dx_w_mod = '[D|d|W|w](?P<Dice>\d+)\s*(?P<AddSub>[\+|\-])\s*(?P<Modifier>\d+)'
+    dx_no_mod = '[D|d|W|w](?P<Dice>\d+)'
+    match_dx_w_mod = re.search(dx_w_mod, msg)
+    match_dx_no_mod = re.search(dx_no_mod, msg)
+    result = 1
+    isNaturalOne = False
+    isNatural20 = False
+    if match_dx_w_mod:
+        dice = int(match_dx_w_mod.group('Dice'))
+        addSub = match_dx_w_mod.group('AddSub')
+        modifier = int(match_dx_w_mod.group('Modifier'))
+        diceResult = random.randint(1,dice+1)
+        isNaturalOne = diceResult == 1
+        isNatural20 = diceResult == 20
+        result = diceResult + (modifier if addSub == '+' else -modifier)
+        result = result if result > 0 else 1
+    elif match_dx_no_mod:
+        dice = int(match_dx_no_mod.group('Dice'))
+        diceResult = random.randint(1,dice+1)
+        isNaturalOne = diceResult == 1
+        isNatural20 = diceResult == 20
+        result = diceResult
+    text = u'%s hat eine %s gewürfelt." % user_name
+    if isNatural20:
+        text = u'Oh nein! %s hat eine natürliche 1 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
+    elif isNaturalOne:
+        text = u'Juhu! %s hat eine natürliche 20 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
+    update.message.reply_text(text)
 
 ######
 ## Bot Stuff. Init, Mappen der handler/methoden
@@ -206,6 +247,9 @@ dispatcher.add_handler(MessageHandler(Filters.status_update.new_chat_members, ne
 #  Eventhandler, wenn der Bot aus einem Chat entfernt wird
 dispatcher.add_handler(MessageHandler(Filters.status_update.left_chat_member, left_member))
 
+# Würfel Handler
+dice_handler = MessageHandler(Filters.group, dice)
+dispatcher.add_handler(dice_handler)
 
 updater.start_polling()
 
