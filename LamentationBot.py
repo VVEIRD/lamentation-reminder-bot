@@ -215,12 +215,13 @@ def dice(update, context):
         isNaturalOne = diceResult == 1
         isNatural20 = diceResult == 20
         result = diceResult
-    text = u'%s hat eine %s gewürfelt." % user_name
-    if isNatural20:
-        text = u'Oh nein! %s hat eine natürliche 1 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
-    elif isNaturalOne:
-        text = u'Juhu! %s hat eine natürliche 20 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
-    update.message.reply_text(text)
+    if match_dx_w_mod or match_dx_no_mod:
+        text = u'%s hat eine %s gewürfelt.' % (user_name, result)
+        if isNaturalOne:
+            text = u'Oh nein! %s hat eine natürliche 1 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
+        elif isNatural20:
+            text = u'Juhu! %s hat eine natürliche 20 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
+        update.message.reply_text(text)
 
 ######
 ## Bot Stuff. Init, Mappen der handler/methoden
@@ -247,9 +248,8 @@ dispatcher.add_handler(MessageHandler(Filters.status_update.new_chat_members, ne
 #  Eventhandler, wenn der Bot aus einem Chat entfernt wird
 dispatcher.add_handler(MessageHandler(Filters.status_update.left_chat_member, left_member))
 
-# Würfel Handler
-dice_handler = MessageHandler(Filters.group, dice)
-dispatcher.add_handler(dice_handler)
+
+dispatcher.add_handler(MessageHandler(Filters.group, dice))
 
 updater.start_polling()
 
