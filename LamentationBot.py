@@ -17,6 +17,7 @@ from threading import Thread
 import sys
 import re
 import random
+from emoji import emojize
 
 TELEGRAM_TOKEN = sys.argv[1]
 CAL_DAV_URL = sys.argv[2]
@@ -187,10 +188,10 @@ findet am %s um %s
                 execute_query('INSERT INTO chatrooms_informed (chat_id, vEventDate, vEventTime, vEventName) VALUES (?, ?, ?, ?)', [chat_id, vEventDate, vEventStartTime, vEventName])
 
 def roll_dice(diceType, times):
-    diceResult = 0
+    diceResultList = []
     for a in range(0, times):
-        diceResult = diceResult + random.randint(1,diceType)
-    return diceResult
+        diceResultList.append(random.randint(1,diceType))
+    return diceResultList
 
 def dice(update, context):
     chat_id = update.message.chat.id
@@ -211,30 +212,38 @@ def dice(update, context):
         multi = int(match_dx_w_mod_multi.group('Multi'))
     elif match_dx_no_mod and match_dx_no_mod_multi:
         multi = int(match_dx_no_mod_multi.group('Multi'))
+    if multi > 100:
+        update.message.reply_text('😫 Zu viele Würfel!')
+        return
     result = 1
     isNaturalOne = False
     isNatural20 = False
+    diceListString = ""
     if match_dx_w_mod:
         dice = int(match_dx_w_mod.group('Dice'))
         addSub = match_dx_w_mod.group('AddSub')
         modifier = int(match_dx_w_mod.group('Modifier'))
-        diceResult = roll_dice(dice, multi)
+        diceResultList = roll_dice(dice, multi)
+        diceResult = sum(diceResultList)
+        diceListString = "(" + ', '.join(str(x) for x in diceResultList) + ")" + addSub + str(modifier)
         isNaturalOne = diceResult == 1
         isNatural20 = diceResult == 20
         result = diceResult + (modifier if addSub == '+' else -modifier)
         result = result if result > 0 else 1
     elif match_dx_no_mod:
         dice = int(match_dx_no_mod.group('Dice'))
-        diceResult = roll_dice(dice, multi)
+        diceResultList = roll_dice(dice, multi)
+        diceResult = sum(diceResultList)
+        diceListString = "(" + ', '.join(str(x) for x in diceResultList) + ")"
         isNaturalOne = diceResult == 1
         isNatural20 = diceResult == 20
         result = diceResult
     if match_dx_w_mod or match_dx_no_mod:
-        text = u'%s hat eine %s gewürfelt.' % (user_name, result)
+        text = u'Ergebnis: %s; Einzeln: %s' % (result, diceListString)
         if isNaturalOne:
-            text = u'Oh nein! %s hat eine natürliche 1 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
+            text = u'Oh nein! Eine natürliche 1! (Würfelergebnis: %s; Einzeln: %s)' % (result, diceListString)
         elif isNatural20:
-            text = u'Juhu! %s hat eine natürliche 20 gewürfelt! (Würfelergebnis: %s)' % (user_name, result)
+            text = u'Juhu! Eine natürliche 20! (Würfelergebnis: %s; Einzeln: %s)' % (result, diceListString)
         update.message.reply_text(text)
 
 
