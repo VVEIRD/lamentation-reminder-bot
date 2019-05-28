@@ -174,11 +174,10 @@ def check_for_events(context):
             vEventStartTime = e.dtstart.value.strftime("%H:%M")
             vEventDate = startDate.date().strftime("%d.%m.%Y")
             vEventName = e.summary.value
-            vEventStatus = e.status.value
             vEventLocation = e.location.value
             already_informed = channel_already_informed(chat_id, vEventDate, vEventStartTime, vEventName)
             print 'Event %s, am %s um %s, bereits informiert %s' % (vEventName, vEventDate, vEventStartTime, already_informed)
-            if 'CONFIRMED' in vEventStatus and not already_informed:
+            if not already_informed:
                 message = '''%s 
 findet am %s um %s
 %s statt.''' % (vEventName, vEventDate, vEventStartTime, vEventLocation)
@@ -197,7 +196,7 @@ def dice(update, context):
     chat_id = update.message.chat.id
     user_id = update.message.from_user.id
     user_name = update.message.from_user.first_name
-    msg = update.message.text.strip()
+    msg = update.message.text.strip() if a <> None else ''
     # Regex Suchen fuer wuerfelwuerfe
     dx_w_mod = '[D|d|W|w](?P<Dice>\d+)\s*(?P<AddSub>[\+|\-])\s*(?P<Modifier>\d+)'
     dx_w_mod_multi = '(?P<Multi>\d+)[D|d|W|w](?P<Dice>\d+)\s*(?P<AddSub>[\+|\-])\s*(?P<Modifier>\d+)'
