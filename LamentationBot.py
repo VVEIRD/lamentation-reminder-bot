@@ -196,7 +196,7 @@ def dice(update, context):
     chat_id = update.message.chat.id
     user_id = update.message.from_user.id
     user_name = update.message.from_user.first_name
-    msg = update.message.text.strip() if a <> None else ''
+    msg = update.message.text.strip() if update.message.text <> None else ''
     # Regex Suchen fuer wuerfelwuerfe
     dx_w_mod = '[D|d|W|w](?P<Dice>\d+)\s*(?P<AddSub>[\+|\-])\s*(?P<Modifier>\d+)'
     dx_w_mod_multi = '(?P<Multi>\d+)[D|d|W|w](?P<Dice>\d+)\s*(?P<AddSub>[\+|\-])\s*(?P<Modifier>\d+)'
