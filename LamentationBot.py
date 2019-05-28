@@ -208,12 +208,18 @@ def dice(update, context):
     match_dx_no_mod = re.search(dx_no_mod, msg)
     match_dx_no_mod_multi = re.search(dx_no_mod_multi, msg)
     multi = 1
+    dice = 1
     if match_dx_w_mod_multi and match_dx_w_mod:
+        dice = int(match_dx_w_mod.group('Dice'))
         multi = int(match_dx_w_mod_multi.group('Multi'))
     elif match_dx_no_mod and match_dx_no_mod_multi:
+        dice = int(match_dx_no_mod.group('Dice'))
         multi = int(match_dx_no_mod_multi.group('Multi'))
     if multi > 100:
         update.message.reply_text('😫 Zu viele Würfel!')
+        return
+    if multi*dice > 15000:
+        update.message.reply_text('😠 Halte ein du Halunke!!!')
         return
     result = 1
     isNaturalOne = False
