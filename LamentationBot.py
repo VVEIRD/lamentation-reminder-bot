@@ -192,13 +192,13 @@ END:VCALENDAR''' % (botName, DEFAULT_CALENDAR_NAME.replace(' ', ''), vEventName.
 def check_for_events(context):
     for chat_id in chatrooms:
         cal = chatrooms[chat_id][1]
-        startDate = datetime.combine(datetime.today() + timedelta(2), time(0, 0))
-        endDate = datetime.combine(datetime.today() + timedelta(2), time(23, 59))
-        for event in cal.date_search(startDate, endDate):
+        start_date = datetime.combine(datetime.today() - timedelta(days=datetime.today().weekday()), time(0, 0))
+        end_date = datetime.combine(start_date + timedelta(days=6), time(23, 59))
+        for event in cal.date_search(start_date, end_date):
             event.load()
             e = event.instance.vevent
             vEventStartTime = e.dtstart.value.strftime("%H:%M")
-            vEventDate = startDate.date().strftime("%d.%m.%Y")
+            vEventDate = start_date.date().strftime("%d.%m.%Y")
             vEventName = e.summary.value
             vEventLocation = e.location.value
             already_informed = channel_already_informed(chat_id, vEventDate, vEventStartTime, vEventName)
